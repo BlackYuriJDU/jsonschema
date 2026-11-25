@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from jsonschema import FormatChecker, ValidationError
 from jsonschema.exceptions import FormatError
-from jsonschema.validators import Draft4Validator
+from jsonschema.validators import Draft3Validator, Draft4Validator
 
 BOOM = ValueError("Boom!")
 BANG = ZeroDivisionError("Bang!")
@@ -79,6 +79,18 @@ class TestFormatChecker(TestCase):
         checker = FormatChecker()
         with self.assertRaises(FormatError):
             checker.check(instance="not-an-ipv4", format="ipv4")
+
+    def test_draft3_time_is_strict(self):
+        checker = Draft3Validator.FORMAT_CHECKER
+        for value in ["00:00:00", "01:02:03", "23:59:59"]:
+            checker.check(value, "time")
+
+        for value in ["1:2:3", "01:0\u0662:03", "01:02:03\n"]:
+            with self.assertRaises(FormatError):
+                checker.check(value, "time")
+
+        # Non-strings are not checked by format validators.
+        checker.check(12, "time")
 
     def test_repr(self):
         checker = FormatChecker(formats=())

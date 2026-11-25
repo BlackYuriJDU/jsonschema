@@ -442,7 +442,11 @@ def is_date(instance: object) -> bool:
 def is_draft3_time(instance: object) -> bool:
     if not isinstance(instance, str):
         return True
-    return bool(datetime.strptime(instance, "%H:%M:%S"))  # noqa: DTZ007
+    parsed = datetime.strptime(instance, "%H:%M:%S")  # noqa: DTZ007
+    # ``strptime`` accepts unpadded components and non-ASCII decimal digits.
+    # Draft 3 requires the textual form ``hh:mm:ss``, so compare against the
+    # canonical rendering of the parsed value.
+    return parsed.strftime("%H:%M:%S") == instance
 
 
 with suppress(ImportError):
